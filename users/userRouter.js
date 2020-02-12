@@ -14,7 +14,7 @@ router.post('/', validateUser, (req, res) => {
     })
     .catch(err => {
       console.log(err)
-      res.status(500).json({errorMessage: "Could not post user data"})
+      res.status(500).json({errorMessage: "No Luck Making That Post"})
     })
 });
 
@@ -27,7 +27,7 @@ router.post('/:id/posts',validateUserId, validatePost, (req, res) => {
     })
     .catch(err => {
       console.log(err)
-      res.status(500).json({errorMessage: "Could not post data."})
+      res.status(500).json({errorMessage: "No Luck Making That Post"})
     })
 });
 
@@ -38,7 +38,7 @@ router.get('/', (req, res) => {
   })
   .catch(err => {
     console.log(err)
-    res.status(500).json({errorMessage: "Trouble accessing the users."})
+    res.status(500).json({errorMessage: "Did You Do Something Wrong No User Match"})
   })
 });
 
@@ -50,7 +50,7 @@ router.get('/:id', validateUserId, (req, res) => {
   })
   .catch(err => {
     console.log(err)
-    res.status(500).json({errorMessage: "Could not retrieve specified ID"})
+    res.status(500).json({errorMessage: "No ID Match Tighten Your Game Up"})
   })
 });
 
@@ -62,7 +62,7 @@ router.get('/:id/posts',validateUserId, (req, res) => {
   })
   .catch(err => {
     console.log(err)
-    res.status(500).json({errorMessage: "Could not retrieve Users post."})
+    res.status(500).json({errorMessage: "Ya That Post Is Not In Existance "})
   })
 });
 
@@ -74,7 +74,7 @@ router.delete('/:id', validateUserId, (req, res) => {
   })
   .catch(err => {
     console.log(err)
-    res.status(500).json({errorMessage: "The user could not be removed."})
+    res.status(500).json({errorMessage: "Possibly, You Do Not Have The Power To Move Forward With This Task"})
   })
 });
 
@@ -87,7 +87,7 @@ router.put('/:id', validateUserId, validateUser, (req, res) => {
   })
   .catch(err => {
     console.log(err)
-    res.status(500).json({errorMessage: "The user was not updated"})
+    res.status(500).json({errorMessage: "Ya Things Are The Same!"})
   })
 });
 
@@ -98,7 +98,7 @@ function validateUserId(req, res, next) {
   userDb.getById(id)
   .then(post => {
     if(!post) {
-      res.status(404).json({error: 'The specified ID does not exist.'})
+      res.status(404).json({error: 'No Id Of Match'})
     } else {
       next();
     }
@@ -108,9 +108,9 @@ function validateUserId(req, res, next) {
 function validateUser(req, res, next) {
   const data = req.body;
   if(!data){
-    res.status(400).json({message: "missing user data."})
+    res.status(400).json({message: "This User Has No Stuff"})
   } else if(!data.name){
-    res.status(400).json({message: "missing required name field."})
+    res.status(400).json({message: "Use The Empty Input Fields To Input Stuff, But Use Them All "})
   } else {
     next();
   }
@@ -119,9 +119,9 @@ function validateUser(req, res, next) {
 function validatePost(req, res, next) {
   const data = req.body;
   if(!data){
-    res.status(400).json({message: 'missing post data.'})
+    res.status(400).json({message: 'No Post Data '})
   } else if(!data.text){
-    res.status(400).json({message: "missing required text field."})
+    res.status(400).json({message: "Use The Empty Input Fields To Input Stuff, But Use Them All"})
   } else {
     next();
   }
