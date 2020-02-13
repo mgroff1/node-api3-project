@@ -6,7 +6,7 @@ const Posts = require('../posts/postDb');
 //custom middleware
 
 function validateUserId(req, res, next) {
-  // do your magic!
+
   Users.getById(req.params.id)
     .then(response => {
       if (response) {
@@ -27,7 +27,7 @@ function validateUserId(req, res, next) {
 }
 
 function validateUser(req, res, next) {
-  // do your magic!
+
 
   if (!req.body) {
     res.status(400).json({
@@ -45,7 +45,7 @@ function validateUser(req, res, next) {
 }
 
 function validatePost(req, res, next) {
-  // do your magic!
+
 
   if (!req.body) {
     res.status(400).json({
@@ -61,7 +61,7 @@ function validatePost(req, res, next) {
 }
 
 router.post('/', validateUser, (req, res) => {
-  // do your magic!
+
   Users.insert(req.user)
     .then(newUser => {
       res.status(201).json({
@@ -78,7 +78,7 @@ router.post('/', validateUser, (req, res) => {
 });
 
 router.post('/:id/posts', [validateUserId, validatePost], (req, res) => {
-  // do your magic!
+
   const userId = req.params.id;
   const newPost = req.body;
 
@@ -99,7 +99,7 @@ router.post('/:id/posts', [validateUserId, validatePost], (req, res) => {
 });
 
 router.get('/', (req, res) => {
-  // do your magic!
+
   Users.get()
     .then(response => {
       res.status(200).json(response);
@@ -113,12 +113,12 @@ router.get('/', (req, res) => {
 });
 
 router.get('/:id', validateUserId, (req, res) => {
-  // do your magic!
+
   res.send(req.user);
 });
 
 router.get('/:id/posts', validateUserId, (req, res) => {
-  // do your magic!
+
   Users.getUserPosts(req.user.id)
     .then(userPosts => {
       res.status(200).json(userPosts);
@@ -132,7 +132,7 @@ router.get('/:id/posts', validateUserId, (req, res) => {
 });
 
 router.delete('/:id', validateUserId, (req, res) => {
-  // do your magic!
+
   const userToBeDeleted = [{
     ...req.user
   }];
@@ -153,7 +153,7 @@ router.delete('/:id', validateUserId, (req, res) => {
 });
 
 router.put('/:id', validateUserId, (req, res) => {
-  // do your magic!
+
   const userInfo = req.body;
   Users.update(req.params.id, userInfo)
     .then(updatedUser => {
