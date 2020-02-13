@@ -1,130 +1,174 @@
 const express = require('express');
-
 const router = express.Router();
-const userDb = require('./userDb');
-const postDb = require('../posts/postDb');
-router.use(express.json());
-
-//    /api/user
-router.post('/', validateUser, (req, res) => {
-  const data = req.body;
-  userDb.insert(data)
-    .then(user => {
-      res.status(201).json({user})
-    })
-    .catch(err => {
-      console.log(err)
-      res.status(500).json({errorMessage: "No Luck Making That Post"})
-    })
-});
-
-router.post('/:id/posts',validateUserId, validatePost, (req, res) => {
-  const id = req.params.id;
-  const data = req.body;
-  postDb.insert({...data, user_id: id})
-    .then(post => {
-      res.status(201).json({post})
-    })
-    .catch(err => {
-      console.log(err)
-      res.status(500).json({errorMessage: "No Luck Making That Post"})
-    })
-});
-
-router.get('/', (req, res) => {
-  userDb.get()
-  .then(user => {
-    res.status(200).json({user})
-  })
-  .catch(err => {
-    console.log(err)
-    res.status(500).json({errorMessage: "Did You Do Something Wrong No User Match"})
-  })
-});
-
-router.get('/:id', validateUserId, (req, res) => {
-  const id = req.params.id;
-  userDb.getById(id)
-  .then( user => {
-    res.status(200).json(user)
-  })
-  .catch(err => {
-    console.log(err)
-    res.status(500).json({errorMessage: "No ID Match Tighten Your Game Up"})
-  })
-});
-
-router.get('/:id/posts',validateUserId, (req, res) => {
-  const id = req.params.id;
-  userDb.getUserPosts(id)
-  .then(user => {
-    res.status(200).json({user})
-  })
-  .catch(err => {
-    console.log(err)
-    res.status(500).json({errorMessage: "Ya That Post Is Not In Existance "})
-  })
-});
-
-router.delete('/:id', validateUserId, (req, res) => {
-  const id = req.params.id;
-  userDb.remove(id)
-  .then(user => {
-    res.status(200).json(user)
-  })
-  .catch(err => {
-    console.log(err)
-    res.status(500).json({errorMessage: "Possibly, You Do Not Have The Power To Move Forward With This Task"})
-  })
-});
-
-router.put('/:id', validateUserId, validateUser, (req, res) => {
-  const id = req.params.id;
-  const data = req.body;
-  userDb.insert(id, data)
-  .then(user => {
-    res.status(200).json(user)
-  })
-  .catch(err => {
-    console.log(err)
-    res.status(500).json({errorMessage: "Ya Things Are The Same!"})
-  })
-});
+const Users = require('./userDb');
+const Posts = require('../posts/postDb');
 
 //custom middleware
 
 function validateUserId(req, res, next) {
-  const id = req.params.id;
-  userDb.getById(id)
-  .then(post => {
-    if(!post) {
-      res.status(404).json({error: 'No Id Of Match'})
-    } else {
-      next();
-    }
-  })
+  // do your magic!
+  Users.getById(req.params.id)
+    .then(response => {
+      if (response) {
+        req.user = response;
+        next();
+      } else {
+        res.status(404).json({
+          error: "Invalid User ID."
+        });
+      }
+    })
+    .catch(error => {
+      console.log(error);
+      res.status(500).json({
+        message: "Error obtaining user ID."
+      });
+    })
 }
 
 function validateUser(req, res, next) {
-  const data = req.body;
-  if(!data){
-    res.status(400).json({message: "This User Has No Stuff"})
-  } else if(!data.name){
-    res.status(400).json({message: "Use The Empty Input Fields To Input Stuff, But Use Them All "})
+  // do your magic!
+
+  if (!req.body) {
+    res.status(400).json({
+      message: "Missing user data."
+    });
+  } else if (!req.body.name) {
+    res.status(400).json({
+      message: "Missing required name field."
+    });
+  } else {
+    req.user = req.body;
+    next();
+  }
+
+}
+
+function validatePost(req, res, next) {
+  // do your magic!
+
+  if (!req.body) {
+    res.status(400).json({
+      message: "Missing post data."
+    });
+  } else if (!req.body.text) {
+    res.status(400).json({
+      message: "Missing required text field."
+    });
   } else {
     next();
   }
 }
 
-function validatePost(req, res, next) {
-  const data = req.body;
-  if(!data){
-    res.status(400).json({message: 'No Post Data '})
-  } else if(!data.text){
-    res.status(400).json({message: "Use The Empty Input Fields To Input Stuff, But Use Them All"})
-  } else {
-    next();
-  }
-}
+router.post('/', validateUser, (req, res) => {
+  // do your magic!
+  Users.insert(req.user)
+    .then(newUser => {
+      res.status(201).json({
+        ...req.user,
+        message: `Created new user: ${req.user.name}`
+      });
+    })
+    .catch(error => {
+      console.log(error);
+      res.status(500).json({
+        error: "Please create a new user. That user already exists."
+      })
+    })
+});
+
+router.post('/:id/posts', [validateUserId, validatePost], (req, res) => {
+  // do your magic!
+  const userId = req.params.id;
+  const newPost = req.body;
+
+
+  Posts.insert({
+      ...newPost,
+      user_id: userId
+    })
+    .then(post => {
+      res.status(201).json(post);
+    })
+    .catch(error => {
+      console.log(error);
+      res.status(500).json({
+        error: "Unable to add post to the specified user."
+      });
+    });
+});
+
+router.get('/', (req, res) => {
+  // do your magic!
+  Users.get()
+    .then(response => {
+      res.status(200).json(response);
+    })
+    .catch(error => {
+      console.log(error);
+      res.status(500).json({
+        error: "Unable to obtain user information"
+      })
+    })
+});
+
+router.get('/:id', validateUserId, (req, res) => {
+  // do your magic!
+  res.send(req.user);
+});
+
+router.get('/:id/posts', validateUserId, (req, res) => {
+  // do your magic!
+  Users.getUserPosts(req.user.id)
+    .then(userPosts => {
+      res.status(200).json(userPosts);
+    })
+    .catch(error => {
+      console.log(error);
+      res.status(500).json({
+        error: "Error obtaining posts for the specified user ID."
+      });
+    });
+});
+
+router.delete('/:id', validateUserId, (req, res) => {
+  // do your magic!
+  const userToBeDeleted = [{
+    ...req.user
+  }];
+
+  Users.remove(req.user.id)
+    .then(deletedUser => {
+      res.status(200).json({
+        ...userToBeDeleted,
+        message: "User deleted..."
+      });
+    })
+    .catch(error => {
+      console.log(error);
+      res.status(500).json({
+        error: "Unable to delete the specified user."
+      })
+    });
+});
+
+router.put('/:id', validateUserId, (req, res) => {
+  // do your magic!
+  const userInfo = req.body;
+  Users.update(req.params.id, userInfo)
+    .then(updatedUser => {
+      res.status(200).json({
+        id: req.params.id,
+        ...userInfo
+      });
+    })
+    .catch(error => {
+      console.log(error);
+      res.status(500).json({
+        error: "Error updating the user information."
+      })
+    });
+});
+
 
 module.exports = router;

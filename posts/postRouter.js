@@ -1,82 +1,79 @@
 const express = require('express');
 
 const router = express.Router();
-const postDb = require('./postDb');
-router.use(express.json());
-
-//    /api/posts
-router.get('/', (req, res) => {
-  postDb.get()
-  .then(post => {
-    res.status(200).json(post)
-  })
-  .catch(err => {
-    console.log(err)
-    res.status(500).json({ errorMessage: "Trouble accessing the posts"})
-  })
-});
-
-router.get('/:id', validatePostById, (req, res) => {
-  const id = req.params.id;
-  postDb.getById(id)
-  .then(post => {
-      res.status(200).json({post})
-  })
-  .catch(err => {
-    console.log(err)
-    res.status(500).json({errorMessage: "Could not retrieve specified ID"})
-  })
-});
-
-router.delete('/:id', validatePostById, (req, res) => {
-  const id = req.params.id
-  postDb.remove(id)
-    .then(post => {
-      res.status(200).json({post})
-    })
-    .catch(err => {
-      console.log(err)
-      res.status(500).json({ message : "The post could not be removed."})
-    })
-});
-
-router.put('/:id', validatePostById, validatePost, (req, res) => {
-  const id = req.params.id;
-  const data = req.body;
-    postDb.update(id, data)
-      .then( post => {
-        res.status(201).json({post})
-      })
-      .catch(err => {
-        console.log(err)
-        res.status(500).json({ message: "Post was not updated"})
-      })
-});
+const Posts = require("./postDb");
 
 // custom middleware
 
-function validatePost(req, res, next) {
-  const data = req.body;
-  if(!data){
-    res.status(400).json({ message: 'missing post data.'})
-} else if(!data.text){
-    res.status(400).json({ message: "missing  required text field"})
-} else { 
-  next();
-  }
+function validatePostId(req, res, next) {
+
+  Posts.getById(req.params.id)
+    .then(post => {
+      if (post) {
+        req.response = post;
+        next();
+      } else {
+        res.status(400).json({
+          message: "The specified post ID does not exist."
+        })
+      }
+    })
+    .catch(error => {
+      console.log(error);
+    });
 }
 
-function validatePostById(req, res, next) {
-  const id = req.params.id;
-  postDb.getById(id)
-  .then(post => {
-    if(!post) {
-      res.status(404).json({error: 'The specified ID does not exist.'})
-    } else {
-      next();
-    }
-  })
-}
+router.get('/', (req, res) => {
 
+  Posts.get()
+    .then(response => {
+      res.status(200).json(response);
+    })
+    .catch(error => {
+      console.log(error);
+      res.status(500).json({
+        error: "Unable to retrieve posts"
+      });
+    });
+});
+
+router.get('/:id', validatePostId, (req, res) => {
+
+  res.send(req.response);
+});
+
+router.delete('/:id', validatePostId, (req, res) => {
+
+  const postToBeDeleted = [{
+    ...req.response
+  }];
+
+  Posts.remove(req.response.id)
+    .then(deletedPost => {
+      res.status(200).json(postToBeDeleted);
+    })
+    .catch(error => {
+      console.log(error);
+      res.status(500).json({
+        error: "Unable to delete the specified post."
+      });
+    });
+
+});
+
+router.put('/:id', validatePostId, (req, res) => {
+  res.send(req.body);
+
+  Posts.update(req.params.id, req.body)
+    .then(updatedPost => {
+      res.status(200).json(updatedPost)
+    })
+    .catch(error => {
+      console.log(error);
+      res.status(500).json({
+        error: "Unable to update the post"
+      })
+    })
+});
 
 module.exports = router;
